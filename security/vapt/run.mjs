@@ -12,6 +12,7 @@
  *   VAPT_WEB=http://localhost:8080      nginx + server stack
  *   VAPT_NODE=http://localhost:8795     all-in-one image (Node serves the UI itself)
  *   VAPT_TURN=127.0.0.1:3478            coturn
+ *   (HTTPS targets work too, e.g. VAPT_WEB=https://hopline.onrender.com for a live deployment.)
  *   TURN_SECRET                         read from .env if not set (to mint valid credentials like the server does)
  *   VAPT_PRIVATE_IP=192.168.1.35        a private address the relay must refuse to reach
  */
@@ -19,7 +20,9 @@ import { createHash, createHmac, randomBytes } from 'node:crypto';
 import dgram from 'node:dgram';
 import { existsSync, mkdirSync, mkdtempSync, writeFileSync } from 'node:fs';
 import http from 'node:http';
+import https from 'node:https';
 import net from 'node:net';
+import tls from 'node:tls';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -57,9 +60,10 @@ function expect(condition, message) {
 // ── HTTP helpers ──────────────────────────────────────────────────────────
 
 function rawRequest(base, { method = 'GET', path = '/', headers = {} } = {}) {
-  const { hostname, port } = new URL(base);
+  const { hostname, port, protocol } = new URL(base);
+  const lib = protocol === 'https:' ? https : http;
   return new Promise((resolve, reject) => {
-    const req = http.request({ hostname, port, method, path, headers, timeout: 10_000 }, (res) => {
+    const req = lib.request({ hostname, port, method, path, headers, timeout: 10_000 }, (res) => {
       const chunks = [];
       res.on('data', (c) => chunks.push(c));
       res.on('end', () =>
@@ -78,11 +82,13 @@ function rawRequest(base, { method = 'GET', path = '/', headers = {} } = {}) {
 
 /** Sends a request line byte-for-byte (no URL normalisation by the client library). */
 function rawPath(base, path) {
-  const { hostname, port } = new URL(base);
+  const { hostname, port, protocol } = new URL(base);
   return new Promise((resolve, reject) => {
-    const socket = net.connect(Number(port), hostname, () => {
-      socket.write(`GET ${path} HTTP/1.1\r\nHost: ${hostname}\r\nConnection: close\r\n\r\n`);
-    });
+    const send = () => socket.write(`GET ${path} HTTP/1.1\r\nHost: ${hostname}\r\nConnection: close\r\n\r\n`);
+    const socket =
+      protocol === 'https:'
+        ? tls.connect({ host: hostname, port: Number(port) || 443, servername: hostname }, send)
+        : net.connect(Number(port) || 80, hostname, send);
     const chunks = [];
     socket.on('data', (c) => chunks.push(c));
     socket.on('end', () => {
@@ -366,7 +372,11 @@ async function websocketChecks(base) {
       }
     }
     opened.forEach((c) => c.close());
-    await sleep(300);
+    // The server must forget these sockets before the next checks, or they'd be refused by the very limit
+    // this one just filled. Locally that's instant; behind a hosting proxy (e.g. Render's) closes reach the
+    // server 10-25 s later, so remote (HTTPS) targets get a longer pause.
+    await Promise.all(opened.map((c) => Promise.race([c.closed, sleep(5000)])));
+    await sleep(base.startsWith('https:') ? 30_000 : 1000);
     expect(refusedAt !== null, `opened ${opened.length} sockets with forged addresses`);
     expect(refusedAt >= 10, `legitimate connections refused too early (after ${refusedAt})`);
     expect(refusedAt <= 20, `limit bypassed: ${refusedAt} sockets opened`);
@@ -377,8 +387,11 @@ async function websocketChecks(base) {
     const c = client(base, sameOrigin(base));
     await c.outcome;
     c.send({ type: 'signal', data: { x: 'a'.repeat(70 * 1024) } });
-    const code = await Promise.race([c.closed, sleep(4000).then(() => 'still open')]);
-    expect(code === 1009, `close code ${code}`);
+    // Behind a hosting proxy (e.g. Render's) the server's 1009 arrives as a plain 1006 drop, ~12 s later.
+    const remote = base.startsWith('https:');
+    const code = await Promise.race([c.closed, sleep(remote ? 30_000 : 4000).then(() => 'still open')]);
+    expect(code === 1009 || (remote && code === 1006), `close code ${code}`);
+    return code === 1009 ? 'closed with 1009' : 'dropped (1006 through the hosting proxy)';
   });
 
   await check('ws', 'message floods are rate-limited and the server stays healthy', async () => {

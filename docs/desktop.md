@@ -28,7 +28,9 @@ The installers are **not code-signed** (signing certificates cost money), so the
 - **macOS Gatekeeper** ("can't be opened because it is from an unidentified developer"): right-click the app →
   **Open**, then **Open** again. If macOS says the app is damaged, run `xattr -cr /Applications/Hopline.app`.
 
-Downloaded apps use the signaling server baked in at build time (see [Signaling server](#signaling-server)).
+Downloaded apps (1.0.2 and later) connect to the public server **wss://hopline.onrender.com/ws**, baked in at build
+time from the repository variable `HOPLINE_SIGNALING_URL` (see [Signaling server](#signaling-server)). 1.0.1 builds
+have no bundled server; give them one with `settings.json`.
 
 ## Running from source
 

@@ -1,6 +1,6 @@
 {
   "name": "@hopline/web",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "private": true,
   "description": "Hopline web client: direct browser-to-browser file transfer over WebRTC.",
   "type": "module",
@@ -10,7 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@hopline/protocol": "1.0.1",
+    "@hopline/protocol": "1.0.2",
     "hash-wasm": "^4.12.0",
     "qrcode": "^1.5.4",
     "react": "^19.1.0",

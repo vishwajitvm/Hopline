@@ -6,6 +6,21 @@ All notable changes to Hopline are recorded here. The format follows
 
 ## [Unreleased]
 
+_Nothing yet._
+
+## [1.0.2] - 2026-11-07
+
+### Added
+
+- **Public web app at [hopline.onrender.com](https://hopline.onrender.com)**, deployed on Render from
+  `render.yaml`. Verified live: 21/21 active security checks and a browser-to-browser transfer.
+- The desktop apps connect to hopline.onrender.com out of the box (bundled default signaling server; still
+  overridable with `settings.json`).
+- An interactive README: open-in-browser and download buttons, "pick your way" cards, collapsible install guides
+  and FAQ, and diagrams of which path a transfer takes.
+- The security test suite (`npm run vapt`) can test HTTPS deployments and tolerates hosting proxies that pass
+  WebSocket closes on late.
+
 ### Removed
 
 - Dependabot version-update pull requests (they created a branch per update); `main` is the only branch.
@@ -58,6 +73,7 @@ The first public release (source only: the installer build failed on Linux, so n
 - **Documentation**: `docs/` (architecture, protocols, security, deployment, troubleshooting, the speed
   challenge) and Mermaid diagrams in `diagrams/`.
 
-[Unreleased]: https://github.com/vishwajitvm/Hopline/compare/v1.0.1...HEAD
+[Unreleased]: https://github.com/vishwajitvm/Hopline/compare/v1.0.2...HEAD
+[1.0.2]: https://github.com/vishwajitvm/Hopline/compare/v1.0.1...v1.0.2
 [1.0.1]: https://github.com/vishwajitvm/Hopline/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/vishwajitvm/Hopline/releases/tag/v1.0.0

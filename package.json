@@ -1,6 +1,6 @@
 {
   "name": "hopline",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "private": true,
   "description": "Peer-to-peer file transfer: WebRTC in the browser and desktop, end-to-end encrypted LAN transfers from the command line.",
   "type": "module",

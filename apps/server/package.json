@@ -1,6 +1,6 @@
 {
   "name": "@hopline/server",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "private": true,
   "description": "Hopline signaling server: introduces two peers so they can open a direct WebRTC connection. Never sees file data.",
   "type": "module",
@@ -10,7 +10,7 @@
     "dev": "node --watch-path=src --watch-path=../../packages/protocol/src src/index.js"
   },
   "dependencies": {
-    "@hopline/protocol": "1.0.1",
+    "@hopline/protocol": "1.0.2",
     "ws": "^8.18.0"
   },
   "author": {

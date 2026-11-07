@@ -121,6 +121,17 @@ Round 4 re-test (2026-11-07): active suite **36/36**, Trivy **0 at any severity*
 `npm audit --omit=dev` **0**, **90/90** automated tests. End to end: two packaged `Hopline.exe` instances moved
 2 GiB over Direct mode in 17.5 s and the desktop app moved 10 GiB in 85.3 s, both SHA-256 identical.
 
+### Live deployment test (Render, 2026-11-07)
+
+The suite now accepts HTTPS targets. Against the public instance `https://hopline.onrender.com` (Render web
+service behind Render's proxy): **21/21** applicable checks pass (HTTP headers, path traversal, methods, header
+floods, WebSocket origin, `X-Forwarded-For` spoofing, message size and floods, malformed payloads, relay
+credentials, room isolation, brute force, plus the local CLI checks; TURN and the all-in-one image don't apply).
+Two hosting-proxy behaviours were accounted for, not weakened: closed WebSockets reach the server 10–25 s late,
+so the per-client limit stays full briefly, and an oversized message's `1009` close reaches the client as a
+`1006` drop. In both cases the server had already refused or closed the connection. A browser-to-browser
+transfer through the live site (3 files, 40 MB) completed in 8.3 s, all SHA-256 verified.
+
 ### Base images (Trivy, HIGH + CRITICAL)
 
 | Image                                 | Before | Fix                                            | After (2026-11-07) |
