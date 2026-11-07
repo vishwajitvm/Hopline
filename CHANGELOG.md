@@ -6,7 +6,9 @@ All notable changes to Hopline are recorded here. The format follows
 
 ## [Unreleased]
 
-_Nothing yet._
+### Removed
+
+- Dependabot version-update pull requests (they created a branch per update); `main` is the only branch.
 
 ## [1.0.1] - 2026-11-07
 
