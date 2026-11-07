@@ -1,0 +1,34 @@
+%% Hopline — desktop app (Electron) processes, the narrow bridge between them, and Direct mode.
+flowchart LR
+  subgraph Main["Main process (Node) — src/main.cjs"]
+    Cfg["config.cjs<br/>signaling URL: env → settings.json →<br/>bundled app-config.json → localhost<br/>HOPLINE_WEB_URL · PROFILE_DIR · DOWNLOADS_DIR"]
+    Win["BrowserWindow<br/>contextIsolation, sandbox,<br/>no nodeIntegration"]
+    Ipc["ipcMain 'hopline:get-config'"]
+    Guard["Navigation pinned to the exact app URL ·<br/>external links → system browser ·<br/>all permissions denied · no webview"]
+    DIpc["direct-ipc.cjs<br/>'hopline:direct:*' handlers<br/>check sender + exact app URL ·<br/>reset on reload / crash / close"]
+    Service["direct/service.js — DirectService<br/>file tokens · folders by id ·<br/>native writes (SafeFileWriter)"]
+    Receiver["direct/receiver.js<br/>TCP listener, one-time key,<br/>ONE authenticated connection"]
+    Sender["direct/sender.js<br/>own-subnet dialing ·<br/>stall watchdog"]
+  end
+
+  subgraph Renderer["Renderer (sandboxed page)"]
+    Preload["preload.cjs<br/>contextBridge"]
+    Bridge["window.hopline<br/>{ isDesktop, signalingUrl, direct }"]
+    WebApp["Hopline web app<br/>(apps/web/dist via file://<br/>or Vite dev URL)<br/>TransferManager · NativeSink"]
+  end
+
+  Cfg --> Win
+  Cfg --> Ipc
+  Win --> Guard
+  Preload -- "sendSync" --> Ipc
+  Ipc -- "{ signalingUrl }" --> Preload
+  Preload --> Bridge
+  Bridge --> WebApp
+  Bridge -- "invoke: tokens, folder ids,<br/>never paths" --> DIpc
+  DIpc --> Service
+  Service --> Receiver
+  Service --> Sender
+  WebApp -- "WebSocket" --> SignalingServer[("Signaling server")]
+  Receiver <== "Direct link: TCP, AES-256-GCM" ==> OtherApp[("Other Hopline<br/>desktop app")]
+  Sender <== "Direct link" ==> OtherApp
+  Ensure["scripts/ensure-electron.cjs<br/>(prestart) downloads the<br/>Electron binary on first run"] -.-> Main

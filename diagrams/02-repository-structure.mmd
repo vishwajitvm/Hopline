@@ -1,0 +1,32 @@
+%% Hopline — monorepo layout and dependencies between workspaces.
+flowchart TB
+  Root["hopline/ (npm workspaces)"]
+
+  subgraph Packages["packages/"]
+    Protocol["@hopline/protocol<br/>message types, room codes,<br/>transfer limits"]
+  end
+
+  subgraph Apps["apps/"]
+    Server["@hopline/server<br/>backend: signaling"]
+    Web["@hopline/web<br/>frontend: React + Vite"]
+    Desktop["@hopline/desktop<br/>Electron app + Direct mode"]
+    Cli["@hopline/cli<br/>LAN transfers"]
+  end
+
+  subgraph Ops["Ops & docs"]
+    Compose["docker-compose.yml"]
+    Docs["docs/"]
+    Diagrams["diagrams/"]
+  end
+
+  Root --> Packages
+  Root --> Apps
+  Root --> Ops
+
+  Server -- imports --> Protocol
+  Web -- imports --> Protocol
+  Desktop -- "loads build of" --> Web
+  Desktop -- "imports crypto, framing,<br/>safe-write" --> Cli
+  Cli -. "standalone, no protocol import" .- Protocol
+  Compose -- "builds image" --> Server
+  Compose -- "builds image" --> Web

@@ -1,0 +1,34 @@
+%% Hopline CLI — discovery, CPace handshake and encrypted transfer between two computers on a LAN.
+sequenceDiagram
+  autonumber
+  actor S as Sender (hopline send)
+  actor R as Receiver (hopline receive 42-amber-river-falcon)
+
+  Note over S: Generates code 42-amber-river-falcon<br/>listens on a random TCP port (code expires after 30 min)
+  loop Every second until a receiver is accepted
+    S-)R: UDP broadcast :41899 { app: "hopline", nameplate: "42", port }
+  end
+  Note over R: Matches nameplate "42"<br/>(the words are never sent)
+
+  R->>S: TCP connect
+  S->>R: "HOPL" ‖ v2 ‖ senderNonce(16)
+  R->>S: "HOPL" ‖ v2 ‖ receiverNonce(16) ‖ Y_r = y_r·G
+  S->>R: Y_s = y_s·G
+  Note over S,R: G = hash_to_curve(code ‖ nonces) on ristretto255 (CPace)<br/>K = y_s·Y_r = y_r·Y_s → HKDF → session key
+
+  R->>S: 🔒 HELLO (key confirmation)
+  alt Wrong code (or an impostor)
+    S--xR: can't decrypt → closes. Counts as ONE online guess
+    Note over S: Stops after 5 wrong codes.<br/>Junk connections don't count.
+  else Right code
+    S->>R: 🔒 MANIFEST { files: [{ path, size }], total }
+    Note over R: Shows files (warns about programs/hidden files)<br/>"Accept? [Y/n]" (or --yes)
+    R->>S: 🔒 ACCEPT (or REJECT)
+    loop Each file, in manifest order
+      S->>R: 🔒 CHUNK (256 KiB, with backpressure)
+      Note over R: Writes to a new hidden temp file (exclusive create)
+    end
+    S->>R: 🔒 DONE
+    Note over R: Moves each file into place without overwriting<br/>(default folder: "Hopline <date>")
+    R->>S: 🔒 DONE
+  end

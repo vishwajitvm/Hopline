@@ -1,0 +1,7 @@
+node_modules
+dist
+out
+package-lock.json
+*.template
+apps/desktop/release/
+apps/desktop/app-config.json

@@ -1,0 +1,65 @@
+{
+  "name": "hopline",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Peer-to-peer file transfer: WebRTC in the browser and desktop, end-to-end encrypted LAN transfers from the command line.",
+  "type": "module",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "dev": "concurrently -k -n server,web -c cyan,magenta \"npm run dev -w @hopline/server\" \"npm run dev -w @hopline/web\"",
+    "build": "npm run build -w @hopline/web",
+    "start": "npm run start -w @hopline/server",
+    "desktop": "npm run build && npm run start -w @hopline/desktop",
+    "desktop:dev": "npm run dev -w @hopline/desktop",
+    "cli": "node apps/cli/bin/hopline.js",
+    "test": "node --test \"apps/*/test/**/*.test.js\" \"packages/*/test/**/*.test.js\"",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "check": "npm run lint && npm run format:check && npm test && npm run build",
+    "docker:up": "docker compose up --build -d",
+    "docker:down": "docker compose down",
+    "docker:logs": "docker compose logs -f",
+    "tunnel": "node scripts/tunnel.mjs",
+    "vapt": "node security/vapt/run.mjs",
+    "bench:cli": "node scripts/bench-cli.mjs"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.17.0",
+    "concurrently": "^9.1.2",
+    "eslint": "^9.17.0",
+    "eslint-plugin-react": "^7.37.3",
+    "eslint-plugin-react-hooks": "^5.1.0",
+    "globals": "^15.14.0",
+    "prettier": "^3.4.2"
+  },
+  "engines": {
+    "node": ">=20.12"
+  },
+  "author": {
+    "name": "vishwajitvm",
+    "email": "vishwajitmall50@gmail.com"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vishwajitvm/Hopline.git"
+  },
+  "homepage": "https://github.com/vishwajitvm/Hopline#readme",
+  "bugs": {
+    "url": "https://github.com/vishwajitvm/Hopline/issues"
+  },
+  "keywords": [
+    "p2p",
+    "file-transfer",
+    "webrtc",
+    "electron",
+    "end-to-end-encryption",
+    "cli",
+    "pake",
+    "lan"
+  ]
+}

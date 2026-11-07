@@ -1,0 +1,16 @@
+node_modules/
+dist/
+out/
+*.hopline-part
+.env
+.env.*
+!.env.example
+*.log
+.DS_Store
+
+# Desktop builds
+apps/desktop/release/
+apps/desktop/app-config.json
+
+# Local Claude Code settings
+.claude/settings.local.json

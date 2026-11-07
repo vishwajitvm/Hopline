@@ -1,0 +1,74 @@
+%% Hopline — what happens when a lane or the main connection drops mid-transfer (or a page reloads), and how the file resumes.
+sequenceDiagram
+  autonumber
+  actor A as Sender (room creator)
+  participant S as Signaling server
+  actor B as Receiver
+
+  Note over A,B: Transfer of a 5 GB file over the main connection + 3 lanes
+
+  opt Only a lane drops (no reconnect needed)
+    A--xB: lane connection s1.L2 closes
+    Note over A: removeLane(): frames it carried and not yet covered by progress<br/>are re-read and resent on the other channels first
+    Note over B: Duplicates are dropped, reordering fills the gap
+  end
+
+  Note over A,B: At 52% the Wi-Fi blips
+  A--xB: main data channel closes (all lanes of s1 close with it)
+  Note over A: detach(): new epoch stops old send loops,<br/>drop lanes and in-flight records, keep state
+  Note over B: detach(): flush disk writes, keep the partial file,<br/>drop reorder buffers and held frames
+
+  opt Signaling WebSocket dropped too
+    B--xS: socket closes
+    S-->>A: peer-disconnected (seat held for RECONNECT_GRACE_SECONDS)
+    B->>S: rejoin { code, token }   (reconnects with backoff)
+    S-->>B: rejoined { peerPresent, iceServers }
+    S-->>A: peer-reconnected
+  end
+
+  Note over A: Host makes a NEW session (new id) every few seconds until one opens
+  A->>S: signal { session: s2, description: offer }
+  S->>B: relay
+  Note over B: New session id → drop the old PeerSession, answer
+  B->>S: signal { session: s2, description: answer } + ICE
+  S->>A: relay
+  A-)B: new main data channel opens
+
+  par Both sides describe what they have
+    B->>A: sync { v: 3, partial: [{ id, offset: 2.6 GB }], done: [...], decided: [...] }
+  and
+    A->>B: sync { v: 3, partial: [], done: [], decided: [...] }
+  end
+
+  Note over A: Re-hash bytes 0…offset locally (fast), then continue
+  A->>B: start { id, offset: 2.6 GB, slot: new }
+  Note over B: Frames still arriving with an older slot are ignored
+
+  loop Lanes s2.L1…s2.L3, 400 ms apart, best effort
+    A->>S: signal { session: s2.Ln, description: offer } (+ ICE)
+    S->>B: relay (accepted only for the current main session s2)
+    B->>S: answer (+ ICE)
+    S->>A: relay
+    Note over A,B: Lane opens, both compare its DTLS fingerprint with the main connection's,<br/>a mismatch closes it, a match adds it to the TransferManager
+  end
+
+  loop remaining 48%
+    A->>B: frames on all open channels (flow-controlled by the receiver's progress)
+  end
+  A->>B: end { id, sha256 }
+  B->>A: ack { ok: true, verified: true }
+
+  Note over A,B: If nothing reconnects within 3 minutes, the session ends.<br/>Files already received stay saveable.
+
+  opt The receiver reloads its page
+    Note over B: The tab kept its seat (room code + token) in sessionStorage
+    B->>S: rejoin { code, token } (within 2 min of the reload)
+    S->>B: rejoined { peerPresent: true }
+    S->>A: peer-reconnected
+    Note over A,B: New WebRTC connection as above, then sync
+    B->>A: sync { instance: new id, partial: [], ... }
+    Note over A: A new instance id means B remembers nothing:<br/>unfinished files go back to "awaiting"
+    A->>B: offer { files not yet delivered }
+    Note over B: The approval prompt shows again, accepting restarts them from 0
+  end
+

@@ -1,0 +1,36 @@
+%% Hopline — system overview: every client, where it runs, and which paths carry file data.
+flowchart LR
+  subgraph DeviceA["Device A"]
+    WebA["Web app<br/>(browser)"]
+    DeskA["Desktop app<br/>(Electron)"]
+    CliA["CLI<br/>hopline send"]
+  end
+
+  subgraph DeviceB["Device B"]
+    WebB["Web app<br/>(browser)"]
+    DeskB["Desktop app<br/>(Electron)"]
+    CliB["CLI<br/>hopline receive"]
+  end
+
+  subgraph Infra["Your server (Docker or Node)"]
+    Nginx["nginx<br/>static web app + /ws proxy"]
+    Signal["Signaling server<br/>rooms + relay"]
+  end
+
+  WebA -- "WebSocket /ws<br/>room code, SDP, ICE" --> Nginx
+  DeskA -- "WebSocket /ws" --> Signal
+  WebB -- "WebSocket /ws" --> Nginx
+  Nginx -- "proxy" --> Signal
+
+  WebA <== "WebRTC data channel (DTLS)<br/>file bytes — direct" ==> WebB
+  DeskA <== "WebRTC data channel" ==> WebB
+  DeskB -- "WebSocket /ws" --> Signal
+  DeskA <== "Direct mode: TCP, AES-256-GCM<br/>key handed over WebRTC — same LAN" ==> DeskB
+
+  CliA -. "UDP broadcast :41899<br/>nameplate only" .-> CliB
+  CliA <== "TCP, CPace PAKE + AES-256-GCM<br/>file bytes — direct" ==> CliB
+
+  classDef server fill:#eef2ff,stroke:#4f46e5,color:#1e1b4b
+  classDef client fill:#ecfeff,stroke:#0e7490,color:#083344
+  class Nginx,Signal server
+  class WebA,DeskA,CliA,WebB,DeskB,CliB client

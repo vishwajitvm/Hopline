@@ -1,0 +1,60 @@
+%% Hopline — Direct mode: two desktop apps hand off a file from the WebRTC data channel to a native TCP link.
+sequenceDiagram
+  autonumber
+  participant SP as Sender page (renderer)
+  participant SM as Sender main process
+  participant RM as Receiver main process
+  participant RP as Receiver page (renderer)
+
+  Note over SP,RP: Paired over WebRTC as usual. The data channel is DTLS-encrypted and the safety code authenticates it
+  SP->>RP: sync { v: 3, direct: true, ... }
+  RP->>SP: sync { v: 3, direct: true, ... }
+  SP->>RP: offer { batchId, files }
+  Note over RP: User clicks Accept (Downloads/Hopline date)<br/>or Save to a folder (native dialog) → folder id
+  RP->>SP: answer { batchId, accept: true }
+
+  Note over SP: File picked from disk: preload turns it into a token<br/>(webUtils.getPathForFile, never a path in the page)
+  SP->>RP: direct-request { id }
+  RP->>RM: listen() + expect { id, folderId, path, size }
+  Note over RM: TCP listener on 0.0.0.0, random port (IPv4 only)<br/>fresh random 256-bit key per listener
+  RM-->>RP: { port, addresses, key }
+  RP->>SP: direct-ready { id, ok: true, link: { port, addresses, key } }
+  Note over SP,RP: The key travels only over the authenticated data channel, never via the signaling server
+
+  SP->>SM: connect(link)
+  Note over SM: Keeps own-subnet or 100.64/10 addresses only<br/>loopback only if the receiver lists one of our own addresses
+  SM->>RM: TCP connect (all targets at once, 3 s timeout)
+  SM->>RM: 🔒 HELLO { v: 1 } (AES-256-GCM, counter nonce 0)
+  alt Wrong key, junk or too slow
+    RM--xSM: socket closed (hard 10 s deadline, max 8 pending, max 2 per address)
+  else Key proven
+    Note over RM: Accepts exactly ONE authenticated connection,<br/>then stops listening and drops other pending sockets
+    RM->>SM: 🔒 READY
+  end
+
+  SP->>SM: send { id, fileToken, size }
+  SM->>RM: 🔒 FILE { id, size }
+  Note over RM: Only an expected id at exactly that size<br/>SafeFileWriter opens an exclusive .hopline-part temp file
+  loop Until the whole file is sent
+    SM->>RM: 🔒 CHUNK (≤ 512 KiB, with backpressure)
+    RM-->>SM: 🔒 PROGRESS { id, bytes } (every 8 MiB written)
+  end
+  SM->>RM: 🔒 END { sha256 }
+  Note over RM: SHA-256 compared (timingSafeEqual) BEFORE commit<br/>commit never overwrites, no symlinks
+  RM->>SM: 🔒 RESULT { id, ok: true }
+  RM-->>RP: received { id, ok, savedAs (relative) }
+  SM-->>SP: { ok: true }
+
+  opt Receiver cancels, or its disk fails
+    RM->>SM: 🔒 SKIP { id, error? }
+    SM->>RM: 🔒 ABORT { id }
+  end
+
+  alt No direct-ready within 10 s, ok false, or not reachable
+    SP->>RP: start { id, offset: 0, slot } over WebRTC
+    Note over RP: The start cancels the Direct expectation for this file
+  else Link lost, or no progress for 20 s (stall watchdog)
+    Note over RM: Partial file deleted, row back to queued
+    SP->>RP: start { id, offset: 0, slot } over WebRTC (Direct mode off for this session)
+    Note over RP: If the file was already saved, progress + ack are repeated instead
+  end

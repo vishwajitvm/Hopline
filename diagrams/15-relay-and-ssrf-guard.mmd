@@ -1,0 +1,27 @@
+%% Hopline — when the TURN relay is used, how credentials are issued, and what the relay refuses to do.
+flowchart LR
+  subgraph Delhi["New Delhi — mobile data (CGNAT)"]
+    A["Sender browser"]
+  end
+  subgraph US["USA — home Wi-Fi"]
+    B["Receiver browser"]
+  end
+  subgraph Server["Your server"]
+    SIG["Signaling server<br/>holds TURN_SECRET"]
+    TURN["coturn relay<br/>(infra/turn)"]
+  end
+  subgraph Internal["Private networks"]
+    LAN["10.x / 172.16-31.x / 192.168.x<br/>127.x · 169.254.169.254 (cloud metadata)"]
+  end
+
+  A -- "1 · create / join" --> SIG
+  B -- "1 · join" --> SIG
+  SIG -- "2 · only once paired:<br/>user = expiry:random<br/>pass = HMAC(secret, user)" --> A
+  SIG -- "2" --> B
+  A -. "3 · direct path blocked by CGNAT" .-x B
+  A == "4 · DTLS-encrypted bytes" ==> TURN
+  TURN == "4 · relay sees only ciphertext" ==> B
+  TURN -. "403 Forbidden: denied-peer-ip" .-x LAN
+
+  classDef blocked stroke:#b91c1c,color:#b91c1c
+  class LAN blocked

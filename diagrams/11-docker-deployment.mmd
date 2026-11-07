@@ -1,0 +1,35 @@
+%% Hopline — Docker Compose deployment (docker-compose.yml), including the optional TURN relay.
+flowchart LR
+  Browser["Browser<br/>http(s)://your-host:8080"]
+  DesktopApp["Desktop app<br/>(same machine)"]
+  Peer["Other device<br/>(when direct path blocked)"]
+
+  subgraph Host["Docker host"]
+    subgraph Net["network: hopline_default"]
+      Web["web · nginx-unprivileged :8080<br/>static build + CSP/security headers<br/>overwrites X-Forwarded-For"]
+      Srv["server · node:22-alpine :8787<br/>non-root, read-only FS<br/>TRUST_PROXY=1"]
+      Turn["turn · coturn (profile 'turn')<br/>3478 + relay UDP range<br/>SSRF guard, no TCP relay"]
+    end
+  end
+
+  Browser -- "GET /, /assets/*" --> Web
+  Browser -- "WebSocket /ws" --> Web
+  Web -- "proxy_pass /ws, /health" --> Srv
+  DesktopApp -- "ws://127.0.0.1:8787/ws<br/>(published on localhost only)" --> Srv
+  Browser == "DTLS via relay" ==> Turn
+  Turn == "DTLS" ==> Peer
+  Srv -. "short-lived credentials<br/>HMAC(TURN_SECRET)" .-> Browser
+
+  Srv -. "healthcheck /health" .-> Srv
+  Web -. "healthcheck /nginx-health" .-> Web
+  Web -. "depends_on: service_healthy" .-> Srv
+
+  subgraph Build["Multi-stage builds (context: repo root)"]
+    direction TB
+    SB["apps/server/Dockerfile<br/>prod deps only · apk upgrade · no npm/yarn"]
+    WB["apps/web/Dockerfile<br/>vite build → nginx stable · apk upgrade"]
+    TB["infra/turn/Dockerfile<br/>coturn · apk upgrade · safe entrypoint"]
+  end
+  SB -.-> Srv
+  WB -.-> Web
+  TB -.-> Turn

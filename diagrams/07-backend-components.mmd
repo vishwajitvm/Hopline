@@ -1,0 +1,40 @@
+%% Hopline — signaling server (backend) modules and how a request flows through them.
+flowchart TB
+  Entry["index.js<br/>.env → loadConfig → logger → createApp<br/>listen, SIGINT/SIGTERM shutdown"]
+  Config["config.js<br/>validated env settings"]
+  App["app.js<br/>HTTP server · security headers (CSP, XFO, HSTS)<br/>GET/HEAD only · request timeouts"]
+  Health["GET /health<br/>{ status, uptime } (+details if enabled)"]
+  Static["http/static-files.js<br/>apps/web/dist, traversal-safe"]
+  Service["signaling/signaling-service.js<br/>WebSocketServer at /ws"]
+  Verify["verifyClient<br/>same-origin policy · global cap ·<br/>per-client cap (IPv6 /64)"]
+  ClientIp["lib/client-ip.js<br/>X-Forwarded-For from the right,<br/>TRUST_PROXY hops"]
+  Peer["signaling/peer.js<br/>socket + seat + liveness + rate limit"]
+  Bucket["lib/token-bucket.js<br/>messages/s · wrong-code budget"]
+  Rooms["signaling/room-registry.js<br/>rooms with 2 seats, secret tokens"]
+  Ice["signaling/ice-servers.js<br/>STUN + short-lived TURN creds<br/>(only once paired)"]
+  Protocol[("@hopline/protocol<br/>message types, errors,<br/>room code rules")]
+  Timers["heartbeat · idle-socket timeout ·<br/>reconnect grace · room expiry"]
+
+  Entry --> Config
+  Entry --> App
+  App --> Health
+  App --> Static
+  App --> Service
+  Service --> Verify
+  Verify --> ClientIp
+  Service --> Peer
+  Peer --> Bucket
+  Service --> Rooms
+  Service --> Ice
+  Service --> Timers
+  Service -.-> Protocol
+  Rooms -.-> Protocol
+
+  subgraph Handlers["Message handlers (Object.hasOwn lookup)"]
+    Create["create → room + seat token"]
+    Join["join → budgeted code check, pair, TURN creds"]
+    Rejoin["rejoin → reclaim seat by token"]
+    Signal["signal → relay to the other seat"]
+    Leave["leave → close room · drop → grace period"]
+  end
+  Service --> Handlers

@@ -1,0 +1,72 @@
+# Render Blueprint for Hopline — https://render.com/docs/blueprint-spec
+#
+# Deploys the whole app (web UI + signaling server) as ONE web service:
+# `npm start` serves the built React app and the WebSocket endpoint (/ws) from the same URL,
+# so there is nothing to wire together and no CORS or signaling URL to configure.
+#
+# Deploy: push this repo to GitHub → Render dashboard → New → Blueprint → pick the repo → Apply.
+# Full guide: docs/deployment.md
+
+services:
+  - type: web
+    name: hopline
+    runtime: node
+    # free: sleeps after 15 min without traffic (≈1 min to wake). Switch to a paid plan in the dashboard to stay awake.
+    plan: free
+    # Pick the region closest to your users: oregon, ohio, virginia, frankfurt, singapore. Can't change later.
+    region: singapore
+    branch: main
+    # --include=dev: Vite (a dev dependency) is needed to build the web app even though NODE_ENV=production.
+    buildCommand: npm ci --include=dev && npm run build
+    startCommand: npm start
+    healthCheckPath: /health
+    autoDeployTrigger: commit
+    # Only redeploy when something that affects the running app changes.
+    buildFilter:
+      ignoredPaths:
+        - docs/**
+        - diagrams/**
+        - apps/cli/**
+        - apps/desktop/**
+        - '**/*.md'
+        - '**/test/**'
+    envVars:
+      - key: NODE_VERSION
+        value: '22'
+      - key: NODE_ENV
+        value: production
+      # The desktop app isn't built on the server; skip Electron's ~100 MB binary download.
+      - key: ELECTRON_SKIP_BINARY_DOWNLOAD
+        value: '1'
+      # Render's load balancer sets X-Forwarded-For; trust it so per-IP limits see real clients.
+      - key: TRUST_PROXY
+        value: 'true'
+      - key: SERVE_WEB
+        value: 'true'
+      - key: LOG_LEVEL
+        value: info
+      - key: LOG_FORMAT
+        value: json
+      - key: ROOM_TTL_MINUTES
+        value: '30'
+      - key: MAX_CONNECTIONS_PER_IP
+        value: '20'
+      - key: RECONNECT_GRACE_SECONDS
+        value: '120'
+      # Optional: to only accept WebSockets from your own site, add
+      #   - key: ALLOWED_ORIGINS
+      #     value: https://hopline.onrender.com
+      # (skip it if the desktop app should connect too — its pages have no web origin).
+      #
+      # TURN relay — strongly recommended for transfers between countries/mobile networks (docs/turn.md).
+      # Render can't host a TURN server itself (it needs UDP ports), so point these at your own coturn or a
+      # managed provider. They're read at runtime: change them any time without rebuilding.
+      # Render asks for these once when the Blueprint is first applied; leave blank to skip.
+      - key: TURN_URLS
+        sync: false
+      - key: TURN_SECRET
+        sync: false
+      - key: TURN_USERNAME
+        sync: false
+      - key: TURN_CREDENTIAL
+        sync: false

@@ -1,0 +1,121 @@
+{
+  "name": "@hopline/desktop",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Hopline desktop app: fast, end-to-end encrypted file transfer (Direct mode between desktop apps, WebRTC with everyone else).",
+  "main": "src/main.cjs",
+  "scripts": {
+    "prestart": "node scripts/ensure-electron.cjs",
+    "start": "electron .",
+    "predev": "node scripts/ensure-electron.cjs",
+    "dev": "cross-env HOPLINE_WEB_URL=http://localhost:5290 electron .",
+    "prepack": "node scripts/write-app-config.cjs",
+    "pack": "electron-builder --dir",
+    "predist": "node scripts/write-app-config.cjs",
+    "dist": "electron-builder"
+  },
+  "devDependencies": {
+    "cross-env": "^10.1.0",
+    "electron": "^45.2.3",
+    "electron-builder": "^26.18.0"
+  },
+  "type": "module",
+  "dependencies": {
+    "@hopline/cli": "1.0.0"
+  },
+  "author": {
+    "name": "vishwajitvm",
+    "email": "vishwajitmall50@gmail.com"
+  },
+  "homepage": "https://github.com/vishwajitvm/Hopline",
+  "license": "MIT",
+  "build": {
+    "appId": "io.github.vishwajitvm.hopline",
+    "productName": "Hopline",
+    "copyright": "Copyright © 2026 vishwajitvm",
+    "directories": {
+      "output": "release",
+      "buildResources": "build"
+    },
+    "files": [
+      "src/**/*",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "../web/dist",
+        "to": "web",
+        "filter": [
+          "**/*"
+        ]
+      },
+      {
+        "from": "app-config.json",
+        "to": "app-config.json"
+      }
+    ],
+    "asar": true,
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "artifactName": "Hopline-Setup-${version}-${arch}.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": true,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "include": "build/installer.nsh"
+    },
+    "mac": {
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        }
+      ],
+      "category": "public.app-category.utilities",
+      "artifactName": "Hopline-${version}-mac-${arch}.${ext}"
+    },
+    "linux": {
+      "target": [
+        {
+          "target": "AppImage",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "deb",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "category": "Network",
+      "maintainer": "vishwajitvm <vishwajitmall50@gmail.com>",
+      "artifactName": "Hopline-${version}-linux-${arch}.${ext}"
+    },
+    "publish": {
+      "provider": "github",
+      "owner": "vishwajitvm",
+      "repo": "Hopline",
+      "releaseType": "release"
+    },
+    "electronVersion": "45.2.3"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vishwajitvm/Hopline.git",
+    "directory": "apps/desktop"
+  }
+}

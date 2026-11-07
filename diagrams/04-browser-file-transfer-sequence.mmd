@@ -1,0 +1,52 @@
+%% Hopline — sending files over WebRTC data channels (protocol v3: consent, lanes, reordering, flow control, verification).
+sequenceDiagram
+  autonumber
+  participant SUI as Sender UI
+  participant STM as Sender TransferManager
+  participant CH as Main channel "hopline"
+  participant LN as Lanes "hopline-lane" (0-3)
+  participant RTM as Receiver TransferManager
+  participant RUI as Receiver UI
+
+  Note over STM,RTM: On every main channel open both sides first exchange SYNC (v: 3, what each has received)
+  Note over CH,LN: Control messages only on the main channel. Frames on any channel, each lane its own RTCPeerConnection
+
+  SUI->>STM: send([files or folder])
+  STM->>CH: { t: "offer", batchId, files: [{ id, name, path, size, mime }], total }
+  CH->>RTM: offer
+  RTM-->>RUI: Offer card: "Incoming: 3 files · 5.2 GB" — Save to folder / Accept / Decline
+  Note over RTM: Nothing is stored before the user decides
+  RUI->>RTM: accept(batchId, folder or browser storage)
+  RTM->>CH: { t: "answer", batchId, accept: true }
+  CH->>STM: answer → files queued
+
+  STM->>CH: { t: "start", id, offset: 0, slot: 7 }
+  loop 1 MiB blocks read from disk and hashed in file order, cut into 64 KiB frames
+    alt no channel below its high water (8 MiB / channels, min 2 MiB) or unconfirmed bytes (all files, all lanes) > 32 MiB
+      STM->>STM: wait (bufferedamountlow on any channel / next progress)
+    end
+    Note over STM: Frame = [slot][offset high][offset low][payload], 12-byte big-endian header
+    par Emptiest send buffer wins
+      STM->>CH: frame { slot 7, offset n }
+      CH->>RTM: frame
+    and
+      STM->>LN: frame { slot 7, offset n + 65,524 }
+      LN->>RTM: frame
+    end
+    Note over RTM: Ahead of the contiguous offset → reorder buffer (by offset)<br/>At it → hash + write in order, then drain the buffer<br/>Duplicate or older slot → drop. Slot not started yet → hold (bounded)
+    RTM-->>STM: { t: "progress", id, bytes } every 2 MiB of contiguous bytes written
+  end
+
+  opt A lane closes mid-file
+    LN--xSTM: lane closed (lane-lost)
+    STM->>STM: re-read its frames not yet covered by progress
+    STM->>CH: resend them on the remaining channels, before any new data
+  end
+
+  STM->>CH: { t: "end", id, sha256 }
+  CH->>RTM: end (may overtake the last frames on other lanes)
+  Note over RTM: Finishes when contiguous bytes == size AND end has arrived
+  RTM->>RTM: digest matches? → commit file (else discard, never visible)
+  RTM->>CH: { t: "ack", id, ok: true, verified: true }
+  CH->>STM: ack → "Delivered · Verified"
+  RTM-->>RUI: "Received · Verified" (Save) or "Saved to your folder"

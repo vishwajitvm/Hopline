@@ -1,0 +1,31 @@
+{
+  "name": "@hopline/cli",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Hopline command line: end-to-end encrypted file transfer between computers on the same network. No server needed.",
+  "type": "module",
+  "bin": {
+    "hopline": "bin/hopline.js"
+  },
+  "files": [
+    "bin",
+    "src"
+  ],
+  "engines": {
+    "node": ">=20.12"
+  },
+  "dependencies": {
+    "@noble/curves": "^2.4.0",
+    "@noble/hashes": "^2.4.0"
+  },
+  "author": {
+    "name": "vishwajitvm",
+    "email": "vishwajitmall50@gmail.com"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vishwajitvm/Hopline.git",
+    "directory": "apps/cli"
+  }
+}

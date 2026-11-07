@@ -1,0 +1,36 @@
+%% Hopline CLI — CPace key exchange (PAKE) and per-frame encryption (apps/cli/src/core/crypto.js).
+flowchart LR
+  Code["Transfer code<br/>42-amber-river-falcon"]
+  Nonces["senderNonce ‖ receiverNonce<br/>(16 B each, fresh per connection)"]
+  H2C["hash_to_curve<br/>ristretto255<br/>DST hopline/v2/cpace"]
+  G(("Generator G<br/>known only to<br/>code holders"))
+  Ys["Sender: random y_s<br/>Y_s = y_s · G"]
+  Yr["Receiver: random y_r<br/>Y_r = y_r · G"]
+  K["Shared secret<br/>K = y_s·Y_r = y_r·Y_s"]
+  HKDF["HKDF-SHA256<br/>salt = nonces<br/>info = label ‖ Y_s ‖ Y_r"]
+  Key["Session key (32 B)"]
+
+  Code --> H2C
+  Nonces --> H2C
+  H2C --> G
+  G --> Ys
+  G --> Yr
+  Ys -- "sent" --> K
+  Yr -- "sent" --> K
+  K --> HKDF
+  HKDF --> Key
+
+  subgraph Why["Why a PAKE"]
+    direction TB
+    W1["Wrong code → different G → different K:<br/>first encrypted message fails"]
+    W2["A recorded handshake can't be brute-forced offline:<br/>testing a guess needs Diffie-Hellman"]
+  end
+
+  subgraph Frame["Every message on the wire"]
+    direction LR
+    Nonce["nonce = direction (4 B) ‖ counter (8 B)"]
+    Gcm["AES-256-GCM"]
+    Wire["length (4 B) ‖ ciphertext ‖ tag (16 B)"]
+    Nonce --> Gcm --> Wire
+  end
+  Key --> Gcm

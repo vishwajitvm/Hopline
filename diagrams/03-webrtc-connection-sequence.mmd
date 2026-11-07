@@ -1,0 +1,56 @@
+%% Hopline — how two browsers find each other and open a direct (or relayed) WebRTC connection, plus its lanes.
+sequenceDiagram
+  autonumber
+  actor Alice as Device A (creator)
+  participant S as Signaling server
+  actor Bob as Device B (joiner)
+
+  Note over Alice,Bob: Each device generates one ECDSA P-256 DTLS certificate per session,<br/>used for the main connection and every lane
+  Alice->>S: WebSocket connect /ws (same-origin check)
+  Alice->>S: { type: "create" }
+  S-->>Alice: { type: "created", code: "K7Q2XM", token, iceServers: STUN }
+  Note over Alice: Shows code, QR and invite link
+
+  Bob->>S: WebSocket connect /ws
+  Bob->>S: { type: "join", code: "K7Q2XM" }
+  Note over S: Wrong codes cost from a per-client budget (10/min)
+  S-->>Bob: { type: "joined", code, token, iceServers: STUN + TURN creds }
+  S-->>Alice: { type: "peer-joined", iceServers: STUN + TURN creds }
+
+  Note over Alice: Creator is the initiator:<br/>new session id (s1), data channel + offer
+  Alice->>S: signal { session, description: offer }
+  S->>Bob: signal { session, description: offer }
+  Bob->>S: signal { session, description: answer }
+  S->>Alice: signal { session, description: answer }
+
+  par ICE candidates (both directions)
+    Alice->>S: signal { session, candidate }
+    S->>Bob: relay
+  and
+    Bob->>S: signal { session, candidate }
+    S->>Alice: relay
+  end
+
+  Alice-)Bob: DTLS handshake (direct, or via TURN relay)
+  Note over Alice,Bob: Data channel "hopline" opens → "Connected · Direct/Relayed"<br/>Both show the same 16-digit safety code
+
+  loop Up to 3 lanes, session ids s1.L1 … .L3, 400 ms apart (best effort, 20 s timeout)
+    Alice->>S: signal { session: "s1.Ln", description: offer } + ICE
+    S->>Bob: relay (accepted only for the current main session)
+    Bob->>S: signal { session: "s1.Ln", description: answer } + ICE
+    S->>Alice: relay
+    Alice-)Bob: DTLS handshake (same route rules, "Hide my IP" included)
+    alt Lane's remote DTLS fingerprint == main connection's
+      Note over Alice,Bob: Data channel "hopline-lane" carries file frames, badge shows "N lanes"
+    else Different certificate (e.g. the server answered itself)
+      Note over Alice,Bob: Lane closed with a console warning, never carries data
+    end
+  end
+
+  opt Either side leaves on purpose
+    Bob->>S: { type: "leave" }
+    S-->>Alice: { type: "peer-left" }
+  end
+  opt A connection drops instead
+    Note over Alice,Bob: Seat held for the grace period → rejoin + new session (diagram 14)
+  end

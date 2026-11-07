@@ -1,0 +1,18 @@
+**/node_modules
+**/dist
+**/out
+**/*.log
+**/.env
+**/.env.*
+.git
+.github
+.vscode
+.idea
+# Only the manifests of these workspaces are needed (npm validates the lockfile against them).
+apps/desktop/*
+!apps/desktop/package.json
+apps/cli/*
+!apps/cli/package.json
+**/test
+**/*.md
+docker-compose*.yml

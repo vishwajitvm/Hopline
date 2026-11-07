@@ -1,0 +1,33 @@
+%% Hopline — deploying to Render with render.yaml: one web service serves the UI and signaling.
+flowchart LR
+  Dev["You<br/>git push origin main"]
+  GitHub[("GitHub repo<br/>hopline")]
+
+  subgraph Render["Render (Blueprint: render.yaml)"]
+    direction TB
+    Build["Build<br/>npm ci --include=dev<br/>npm run build"]
+    subgraph Service["Web service: hopline (Node 22)"]
+      Start["npm start<br/>(apps/server)"]
+      UI["Static web app<br/>apps/web/dist"]
+      WS["WebSocket /ws<br/>signaling"]
+      Health["GET /health"]
+      Start --> UI
+      Start --> WS
+      Start --> Health
+    end
+    Proxy["Render edge<br/>HTTPS + TLS<br/>X-Forwarded-For"]
+    Build --> Start
+  end
+
+  Browser1["Device A<br/>https://hopline.onrender.com"]
+  Browser2["Device B"]
+  Desktop["Desktop app<br/>HOPLINE_SIGNALING_URL=<br/>wss://…/ws"]
+
+  Dev --> GitHub
+  GitHub -- "auto-deploy on commit<br/>(buildFilter skips docs, CLI, desktop)" --> Build
+  Browser1 -- "HTTPS / WSS" --> Proxy
+  Browser2 -- "HTTPS / WSS" --> Proxy
+  Desktop -- "WSS" --> Proxy
+  Proxy --> Service
+  Proxy -. "health check" .-> Health
+  Browser1 <== "WebRTC data channel<br/>files go direct" ==> Browser2

@@ -1,0 +1,33 @@
+{
+  "name": "@hopline/web",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Hopline web client: direct browser-to-browser file transfer over WebRTC.",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@hopline/protocol": "1.0.0",
+    "hash-wasm": "^4.12.0",
+    "qrcode": "^1.5.4",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.4.1",
+    "vite": "^6.3.5"
+  },
+  "author": {
+    "name": "vishwajitvm",
+    "email": "vishwajitmall50@gmail.com"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vishwajitvm/Hopline.git",
+    "directory": "apps/web"
+  }
+}

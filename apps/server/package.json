@@ -1,0 +1,26 @@
+{
+  "name": "@hopline/server",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Hopline signaling server: introduces two peers so they can open a direct WebRTC connection. Never sees file data.",
+  "type": "module",
+  "main": "src/app.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch-path=src --watch-path=../../packages/protocol/src src/index.js"
+  },
+  "dependencies": {
+    "@hopline/protocol": "1.0.0",
+    "ws": "^8.18.0"
+  },
+  "author": {
+    "name": "vishwajitvm",
+    "email": "vishwajitmall50@gmail.com"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vishwajitvm/Hopline.git",
+    "directory": "apps/server"
+  }
+}

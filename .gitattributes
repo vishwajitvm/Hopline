@@ -1,0 +1,4 @@
+# Normalize line endings: shell scripts and container files must stay LF even on Windows checkouts.
+* text=auto eol=lf
+*.png binary
+*.ico binary

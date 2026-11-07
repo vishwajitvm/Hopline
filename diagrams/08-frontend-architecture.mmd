@@ -1,0 +1,53 @@
+%% Hopline — web app (frontend) layers: components render, hooks own lifecycle, services talk to the network.
+flowchart TB
+  subgraph Components["components/ (UI only)"]
+    App["app/App.jsx"]
+    Home["home/HomeView<br/>(+ Hide my IP)"]
+    Room["room/RoomView"]
+    RoomParts["ShareCard · StatusBadge · ConnectionBadge ·<br/>SafetyCode · ReconnectBanner · IncomingOffers ·<br/>Dropzone (files + folders) · TransferList/Item"]
+  end
+
+  subgraph Hooks["hooks/"]
+    Session["useHoplineSession<br/>lifecycle + auto-reconnect"]
+    Guards["useTransferGuards<br/>leave warning + wake lock"]
+    Small["useInviteLink · useQrCode · useCopyToClipboard"]
+  end
+
+  subgraph State["state/"]
+    Reducer["session-reducer<br/>Phase (incl. reconnecting)"]
+  end
+
+  subgraph Services["services/ (no React)"]
+    SigClient["SignalingClient<br/>rejoin · heartbeat · queue"]
+    ConnMgr["ConnectionManager<br/>replaces broken sessions ·<br/>up to 3 authenticated lanes"]
+    PeerSess["PeerSession (main or lane)<br/>RTCPeerConnection · stats ·<br/>safety code · fingerprint"]
+    TM["transfer/TransferManager<br/>lanes · reorder · retransmit ·<br/>consent · flow control ·<br/>SHA-256 · resume · cancel ·<br/>Direct mode handoff (desktop)"]
+    Frames["transfer/frames<br/>slot + offset header"]
+    Port["transfer/ChannelPort<br/>swappable main channel"]
+    Sinks["storage/sinks<br/>desktop folder (NativeSink) →<br/>chosen folder → OPFS → memory"]
+    Hash["crypto/sha256<br/>hash-wasm (lazy)"]
+  end
+
+  Protocol[("@hopline/protocol")]
+  Desktop[("window.hopline.direct<br/>desktop app only")]
+
+  App --> Home
+  App --> Room
+  Room --> RoomParts
+  App --> Session
+  App --> Guards
+  Room --> Small
+  Session --> Reducer
+  Session --> SigClient
+  Session --> ConnMgr
+  ConnMgr --> PeerSess
+  Session --> TM
+  TM --> Port
+  TM --> Frames
+  TM --> Sinks
+  TM --> Hash
+  PeerSess --> Hash
+  Services -.-> Protocol
+  TM -. "direct-request / direct-ready,<br/>send, expect, events" .-> Desktop
+  Sinks -. "openFile / writeFile / commitFile" .-> Desktop
+  Session -. "chooseFolder / defaultFolder" .-> Desktop

@@ -1,0 +1,107 @@
+# Hopline: signaling server + web app (+ optional TURN relay).
+#   docker compose up --build -d                    → http://localhost:8080
+#   docker compose --profile turn up --build -d     → also starts the TURN relay (see docs/turn.md)
+# Settings come from .env (copy .env.example). Every value has a sensible default.
+
+name: hopline
+
+services:
+  server:
+    build:
+      context: .
+      dockerfile: apps/server/Dockerfile
+    image: hopline/server:latest
+    restart: unless-stopped
+    environment:
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      ROOM_TTL_MINUTES: ${ROOM_TTL_MINUTES:-30}
+      RECONNECT_GRACE_SECONDS: ${RECONNECT_GRACE_SECONDS:-120}
+      MAX_CONNECTIONS_PER_IP: ${MAX_CONNECTIONS_PER_IP:-20}
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-}
+      JOIN_ATTEMPTS_PER_MINUTE: ${JOIN_ATTEMPTS_PER_MINUTE:-10}
+      MAX_CONNECTIONS: ${MAX_CONNECTIONS:-5000}
+      STUN_URLS: ${STUN_URLS:-}
+      # TURN relay: issued to clients as short-lived credentials (never baked into the web build).
+      TURN_URLS: ${TURN_URLS:-}
+      TURN_SECRET: ${TURN_SECRET:-}
+      TURN_USERNAME: ${TURN_USERNAME:-}
+      TURN_CREDENTIAL: ${TURN_CREDENTIAL:-}
+      # Exactly one proxy (nginx, which overwrites X-Forwarded-For) sits in front.
+      TRUST_PROXY: '1'
+    ports:
+      # Only reachable from this machine (for the desktop app: ws://localhost:8787/ws). Everyone else comes
+      # through nginx on WEB_PORT — so nobody can bypass the proxy and forge X-Forwarded-For.
+      - '127.0.0.1:${SERVER_PORT:-8787}:8787'
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: ['CMD', 'wget', '-qO-', 'http://127.0.0.1:8787/health']
+      interval: 15s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+      args:
+        VITE_SIGNALING_URL: ${VITE_SIGNALING_URL:-}
+        VITE_STUN_URLS: ${VITE_STUN_URLS:-}
+    image: hopline/web:latest
+    restart: unless-stopped
+    environment:
+      SIGNALING_UPSTREAM: server:8787
+    ports:
+      - '${WEB_PORT:-8080}:8080'
+    depends_on:
+      server:
+        condition: service_healthy
+    security_opt:
+      - no-new-privileges:true
+
+  # Public HTTPS URL for this stack, reachable from any device on any network (Cloudflare quick tunnel:
+  # free, no account, random https://<words>.trycloudflare.com address that changes on every restart).
+  #   docker compose --profile tunnel up -d    then    docker compose logs tunnel   → look for the URL
+  # It only exposes the web container (UI + /ws); nothing else on this machine.
+  tunnel:
+    profiles: ['tunnel']
+    image: cloudflare/cloudflared:latest
+    restart: unless-stopped
+    command: tunnel --no-autoupdate --url http://web:8080
+    depends_on:
+      web:
+        condition: service_healthy
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+
+  # TURN relay (coturn) for devices whose networks block direct connections — e.g. many mobile carriers.
+  # Needs a public IP and these ports open in your firewall: 3478 (UDP+TCP) and TURN_MIN_PORT–TURN_MAX_PORT (UDP).
+  # Hardened settings live in infra/turn/entrypoint.sh: shared-secret auth only (refuses to start without a
+  # strong secret), no TCP relaying, and NO relaying into private/loopback/link-local/IPv4-mapped networks,
+  # so the relay can't be used to reach machines inside your network (SSRF).
+  turn:
+    profiles: ['turn']
+    build:
+      context: infra/turn
+    image: hopline/turn:latest
+    restart: unless-stopped
+    environment:
+      TURN_SECRET: ${TURN_SECRET:-}
+      TURN_EXTERNAL_IP: ${TURN_EXTERNAL_IP:-}
+      TURN_REALM: ${TURN_REALM:-hopline}
+      TURN_MIN_PORT: ${TURN_MIN_PORT:-49160}
+      TURN_MAX_PORT: ${TURN_MAX_PORT:-49360}
+      TURN_MAX_BPS: ${TURN_MAX_BPS:-0}
+      TURN_EXTRA_ARGS: ${TURN_EXTRA_ARGS:-}
+    ports:
+      - '3478:3478/udp'
+      - '3478:3478/tcp'
+      - '${TURN_MIN_PORT:-49160}-${TURN_MAX_PORT:-49360}:${TURN_MIN_PORT:-49160}-${TURN_MAX_PORT:-49360}/udp'
+    read_only: true
+    tmpfs:
+      - /var/tmp
+    security_opt:
+      - no-new-privileges:true

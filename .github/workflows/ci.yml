@@ -1,0 +1,43 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: Lint, format, test, build
+    runs-on: ubuntu-latest
+    env:
+      # Tests don't launch Electron; skip downloading its binary.
+      ELECTRON_SKIP_BINARY_DOWNLOAD: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run check
+      - name: Dependency audit
+        run: npm audit --omit=dev
+
+  docker:
+    name: Docker images build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build server, web and all-in-one images
+        run: |
+          docker build -f apps/server/Dockerfile -t hopline/server:ci .
+          docker build -f apps/web/Dockerfile -t hopline/web:ci .
+          docker build -t hopline:ci .

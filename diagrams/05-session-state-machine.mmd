@@ -1,0 +1,33 @@
+%% Hopline — web/desktop session phases (apps/web/src/state/session-reducer.js).
+stateDiagram-v2
+  [*] --> idle
+
+  idle --> starting: createRoom() / joinRoom(code)
+  starting --> idle: server unreachable, room not found or full, too many wrong codes
+  starting --> waiting: created (room code)
+  starting --> connecting: joined
+
+  waiting --> connecting: peer-joined (relay credentials arrive, host makes the offer)
+  waiting --> idle: room expired / Hide-my-IP without a relay
+  connecting --> connected: data channel open
+  connecting --> ended: no route within 60 s
+
+  connected --> reconnecting: channel closed / ICE failed
+  reconnecting --> connected: new session's channel opens (transfers resume)
+  reconnecting --> ended: not restored within 3 min / peer left
+
+  connected --> ended: peer left
+  ended --> idle: Start over (frees browser storage)
+  waiting --> idle: Leave
+  connecting --> idle: Leave
+  connected --> idle: Leave
+  reconnecting --> idle: Leave
+
+  note right of connected
+    A dropped signaling WebSocket alone doesn't
+    interrupt anything: it rejoins in the background.
+  end note
+  note right of ended
+    Received files stay available to save
+    until the user starts over.
+  end note

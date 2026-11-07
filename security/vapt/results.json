@@ -1,0 +1,260 @@
+{
+  "ranAt": "2026-11-07T09:07:40.060Z",
+  "web": "http://localhost:8080",
+  "node": "http://localhost:8795",
+  "turn": "127.0.0.1:3478",
+  "results": [
+    {
+      "area": "http",
+      "name": "nginx: security headers on /",
+      "ok": true,
+      "detail": "status 200",
+      "ms": 4
+    },
+    {
+      "area": "http",
+      "name": "nginx: security headers on /health",
+      "ok": true,
+      "detail": "status 200",
+      "ms": 4
+    },
+    {
+      "area": "http",
+      "name": "nginx: security headers on /does-not-exist",
+      "ok": true,
+      "detail": "status 200",
+      "ms": 3
+    },
+    {
+      "area": "http",
+      "name": "nginx: assets keep security headers and are immutable",
+      "ok": true,
+      "detail": "",
+      "ms": 7
+    },
+    {
+      "area": "http",
+      "name": "nginx: path traversal never leaks files (12 payloads)",
+      "ok": true,
+      "detail": "",
+      "ms": 89
+    },
+    {
+      "area": "http",
+      "name": "nginx: only GET/HEAD allowed",
+      "ok": true,
+      "detail": "",
+      "ms": 20
+    },
+    {
+      "area": "http",
+      "name": "nginx: no version disclosure",
+      "ok": true,
+      "detail": "",
+      "ms": 2
+    },
+    {
+      "area": "http",
+      "name": "nginx: /health reveals no usage numbers",
+      "ok": true,
+      "detail": "",
+      "ms": 5
+    },
+    {
+      "area": "http",
+      "name": "nginx: oversized headers are refused, server stays up",
+      "ok": true,
+      "detail": "status 400",
+      "ms": 8
+    },
+    {
+      "area": "ws",
+      "name": "cross-site WebSocket connections are refused",
+      "ok": true,
+      "detail": "",
+      "ms": 14
+    },
+    {
+      "area": "ws",
+      "name": "same-site connection works",
+      "ok": true,
+      "detail": "",
+      "ms": 16
+    },
+    {
+      "area": "ws",
+      "name": "spoofed X-Forwarded-For cannot bypass the per-client limit",
+      "ok": true,
+      "detail": "refused after 20 — all forged addresses counted as one client",
+      "ms": 520
+    },
+    {
+      "area": "ws",
+      "name": "oversized messages close the socket (1009)",
+      "ok": true,
+      "detail": "",
+      "ms": 54
+    },
+    {
+      "area": "ws",
+      "name": "message floods are rate-limited and the server stays healthy",
+      "ok": true,
+      "detail": "179 messages refused",
+      "ms": 529
+    },
+    {
+      "area": "ws",
+      "name": "malformed and prototype-pollution payloads are rejected",
+      "ok": true,
+      "detail": "",
+      "ms": 528
+    },
+    {
+      "area": "ws",
+      "name": "relay credentials are only issued to paired devices",
+      "ok": true,
+      "detail": "",
+      "ms": 12
+    },
+    {
+      "area": "ws",
+      "name": "room isolation: a third device gets nothing; forged rejoin tokens fail",
+      "ok": true,
+      "detail": "",
+      "ms": 221
+    },
+    {
+      "area": "ws",
+      "name": "room-code brute force is throttled",
+      "ok": true,
+      "detail": "limited after 6 guesses",
+      "ms": 31
+    },
+    {
+      "area": "http",
+      "name": "node: security headers on /",
+      "ok": true,
+      "detail": "status 200",
+      "ms": 21
+    },
+    {
+      "area": "http",
+      "name": "node: security headers on /health",
+      "ok": true,
+      "detail": "status 200",
+      "ms": 4
+    },
+    {
+      "area": "http",
+      "name": "node: security headers on /does-not-exist",
+      "ok": true,
+      "detail": "status 200",
+      "ms": 6
+    },
+    {
+      "area": "http",
+      "name": "node: assets keep security headers and are immutable",
+      "ok": true,
+      "detail": "",
+      "ms": 24
+    },
+    {
+      "area": "http",
+      "name": "node: path traversal never leaks files (12 payloads)",
+      "ok": true,
+      "detail": "",
+      "ms": 167
+    },
+    {
+      "area": "http",
+      "name": "node: only GET/HEAD allowed",
+      "ok": true,
+      "detail": "",
+      "ms": 15
+    },
+    {
+      "area": "http",
+      "name": "node: no version disclosure",
+      "ok": true,
+      "detail": "",
+      "ms": 4
+    },
+    {
+      "area": "http",
+      "name": "node: /health reveals no usage numbers",
+      "ok": true,
+      "detail": "",
+      "ms": 3
+    },
+    {
+      "area": "http",
+      "name": "node: oversized headers are refused, server stays up",
+      "ok": true,
+      "detail": "status 431",
+      "ms": 15
+    },
+    {
+      "area": "turn",
+      "name": "unauthenticated allocation is refused (no open relay)",
+      "ok": true,
+      "detail": "",
+      "ms": 25
+    },
+    {
+      "area": "turn",
+      "name": "wrong credentials are refused",
+      "ok": true,
+      "detail": "",
+      "ms": 17
+    },
+    {
+      "area": "turn",
+      "name": "expired credentials are refused",
+      "ok": true,
+      "detail": "",
+      "ms": 14
+    },
+    {
+      "area": "turn",
+      "name": "TCP relaying is disabled",
+      "ok": true,
+      "detail": "code 442",
+      "ms": 12
+    },
+    {
+      "area": "turn",
+      "name": "valid short-lived credentials work",
+      "ok": true,
+      "detail": "",
+      "ms": 13
+    },
+    {
+      "area": "turn",
+      "name": "relay refuses private/internal targets (SSRF): 7 addresses",
+      "ok": true,
+      "detail": "",
+      "ms": 48
+    },
+    {
+      "area": "cli",
+      "name": "sender survives 300 fuzzed handshakes, then serves the real receiver",
+      "ok": true,
+      "detail": "300 malformed connections ignored",
+      "ms": 1523
+    },
+    {
+      "area": "cli",
+      "name": "a wrong code gets nothing and is counted as a guess",
+      "ok": true,
+      "detail": "",
+      "ms": 36
+    },
+    {
+      "area": "cli",
+      "name": "malicious sender greeting cannot crash the receiver",
+      "ok": true,
+      "detail": "The sender at 127.0.0.1:62847 didn't accept this code. Doubl",
+      "ms": 10
+    }
+  ]
+}

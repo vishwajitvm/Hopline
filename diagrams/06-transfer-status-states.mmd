@@ -1,0 +1,33 @@
+%% Hopline — lifecycle of one transfer row (TransferStatus in apps/web/src/services/transfer/transfer-store.js).
+stateDiagram-v2
+  state "Outgoing file" as Out {
+    [*] --> awaiting: send() → offer
+    awaiting --> declined: receiver declines
+    awaiting --> queued: receiver accepts
+    queued --> sending: start (offset 0, or resume offset)
+    sending --> queued: connection dropped (resumes after SYNC)
+    sending --> verifying: all bytes sent + end(sha256)
+    verifying --> done: ack ok + verified
+    verifying --> failed: ack not ok (e.g. checksum mismatch)
+    sending --> cancelled: either side cancels
+    sending --> failed: file unreadable / changed
+  }
+
+  state "Incoming file" as In {
+    [*] --> offered: offer arrives (nothing stored)
+    offered --> declined_in: Decline
+    offered --> queued_in: Accept / Save to folder
+    queued_in --> receiving: start
+    receiving --> receiving: reconnect → resume at confirmed offset
+    receiving --> verifying_in: end
+    verifying_in --> done_in: checksum OK → file committed
+    verifying_in --> failed_in: checksum mismatch → discarded
+    receiving --> failed_in: too much data / flow control ignored / disk error
+    receiving --> cancelled_in: either side cancels → partial data deleted
+    state "declined" as declined_in
+    state "queued" as queued_in
+    state "verifying" as verifying_in
+    state "done (Save / saved to folder)" as done_in
+    state "failed" as failed_in
+    state "cancelled" as cancelled_in
+  }

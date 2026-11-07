@@ -1,0 +1,47 @@
+name: Bug report
+description: Something doesn't work as expected
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting! For security problems, please follow SECURITY.md instead of opening an issue.
+  - type: dropdown
+    id: component
+    attributes:
+      label: Where did it happen?
+      multiple: true
+      options: [Web app, Desktop app, Direct mode, CLI, Signaling server, TURN relay, Docker / deployment]
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened, and what did you expect?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Create a room on device A
+        2. Join on device B
+        3. Send a 2 GB file…
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Hopline version
+      placeholder: '1.0.0'
+  - type: input
+    id: environment
+    attributes:
+      label: OS and browser (both devices)
+      placeholder: Windows 11 + Chrome 157 → Android 15 + Chrome 154
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs or screenshots
+      description: Browser console, server logs (`docker compose logs server`), or CLI output.
