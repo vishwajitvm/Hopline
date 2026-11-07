@@ -1,6 +1,6 @@
 {
   "name": "@hopline/cli",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "private": true,
   "description": "Hopline command line: end-to-end encrypted file transfer between computers on the same network. No server needed.",
   "type": "module",

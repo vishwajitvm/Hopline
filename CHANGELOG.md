@@ -8,9 +8,26 @@ All notable changes to Hopline are recorded here. The format follows
 
 _Nothing yet._
 
+## [1.0.1] - 2026-11-07
+
+First release with downloadable installers.
+
+### Fixed
+
+- Linux installers failed to build (the executable name came from the scoped package name). The Linux app is now
+  `hopline`, with a proper desktop entry.
+
+### Changed
+
+- Installer file names no longer include the version (`Hopline-Windows-x64-Setup.exe`, `Hopline-macOS-arm64.dmg`,
+  `Hopline-macOS-x64.dmg`, `Hopline-Linux-x86_64.AppImage`, `Hopline-Linux-amd64.deb`), so the README's download
+  buttons always point at the latest release.
+- GitHub Actions use the Node 24 versions of `checkout` and `setup-node`.
+
 ## [1.0.0] - 2026-11-07
 
-The first public release.
+The first public release (source only: the installer build failed on Linux, so no installers were published; see
+1.0.1).
 
 ### Added
 
@@ -39,5 +56,6 @@ The first public release.
 - **Documentation**: `docs/` (architecture, protocols, security, deployment, troubleshooting, the speed
   challenge) and Mermaid diagrams in `diagrams/`.
 
-[Unreleased]: https://github.com/vishwajitvm/Hopline/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/vishwajitvm/Hopline/compare/v1.0.1...HEAD
+[1.0.1]: https://github.com/vishwajitvm/Hopline/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/vishwajitvm/Hopline/releases/tag/v1.0.0

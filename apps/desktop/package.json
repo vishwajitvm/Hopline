@@ -1,6 +1,6 @@
 {
   "name": "@hopline/desktop",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "private": true,
   "description": "Hopline desktop app: fast, end-to-end encrypted file transfer (Direct mode between desktop apps, WebRTC with everyone else).",
   "main": "src/main.cjs",
@@ -21,7 +21,7 @@
   },
   "type": "module",
   "dependencies": {
-    "@hopline/cli": "1.0.0"
+    "@hopline/cli": "1.0.1"
   },
   "author": {
     "name": "vishwajitvm",
@@ -64,7 +64,7 @@
           ]
         }
       ],
-      "artifactName": "Hopline-Setup-${version}-${arch}.${ext}"
+      "artifactName": "Hopline-Windows-${arch}-Setup.${ext}"
     },
     "nsis": {
       "oneClick": false,
@@ -84,7 +84,7 @@
         }
       ],
       "category": "public.app-category.utilities",
-      "artifactName": "Hopline-${version}-mac-${arch}.${ext}"
+      "artifactName": "Hopline-macOS-${arch}.${ext}"
     },
     "linux": {
       "target": [
@@ -103,7 +103,10 @@
       ],
       "category": "Network",
       "maintainer": "vishwajitvm <vishwajitmall50@gmail.com>",
-      "artifactName": "Hopline-${version}-linux-${arch}.${ext}"
+      "artifactName": "Hopline-Linux-${arch}.${ext}",
+      "executableName": "hopline",
+      "syncDesktopName": true,
+      "synopsis": "Fast, private, peer-to-peer file transfer"
     },
     "publish": {
       "provider": "github",
@@ -117,5 +120,6 @@
     "type": "git",
     "url": "git+https://github.com/vishwajitvm/Hopline.git",
     "directory": "apps/desktop"
-  }
+  },
+  "desktopName": "hopline.desktop"
 }

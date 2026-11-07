@@ -8,10 +8,21 @@
 Send files of any size straight from one device to another: in the browser, in the desktop app, or from the
 command line. No uploads, no cloud storage, no accounts.
 
+[![Latest release](https://img.shields.io/github/v/release/vishwajitvm/Hopline?label=latest&color=4f46e5)](https://github.com/vishwajitvm/Hopline/releases/latest)
+[![Release date](https://img.shields.io/github/release-date/vishwajitvm/Hopline?label=released&color=555)](https://github.com/vishwajitvm/Hopline/releases/latest)
+[![Downloads](https://img.shields.io/github/downloads/vishwajitvm/Hopline/total?color=0ea5c6)](https://github.com/vishwajitvm/Hopline/releases)
 [![CI](https://github.com/vishwajitvm/Hopline/actions/workflows/ci.yml/badge.svg)](https://github.com/vishwajitvm/Hopline/actions/workflows/ci.yml)
-[![Latest release](https://img.shields.io/github/v/release/vishwajitvm/Hopline?label=download&color=4f46e5)](https://github.com/vishwajitvm/Hopline/releases/latest)
 [![License: MIT](https://img.shields.io/badge/license-MIT-0ea5c6.svg)](LICENSE)
-![Platforms](https://img.shields.io/badge/platforms-Web%20%C2%B7%20Windows%20%C2%B7%20macOS%20%C2%B7%20Linux%20%C2%B7%20CLI-555)
+
+### ⬇️ Download the latest version
+
+[![Download for Windows](https://img.shields.io/badge/Windows-Download%20.exe-0078D4?style=for-the-badge&logo=windows&logoColor=white)](https://github.com/vishwajitvm/Hopline/releases/latest/download/Hopline-Windows-x64-Setup.exe)
+[![Download for macOS (Apple Silicon)](https://img.shields.io/badge/macOS%20Apple%20Silicon-Download%20.dmg-111111?style=for-the-badge&logo=apple&logoColor=white)](https://github.com/vishwajitvm/Hopline/releases/latest/download/Hopline-macOS-arm64.dmg)
+[![Download for macOS (Intel)](https://img.shields.io/badge/macOS%20Intel-Download%20.dmg-555555?style=for-the-badge&logo=apple&logoColor=white)](https://github.com/vishwajitvm/Hopline/releases/latest/download/Hopline-macOS-x64.dmg)
+[![Download for Linux (AppImage)](https://img.shields.io/badge/Linux-AppImage-E95420?style=for-the-badge&logo=linux&logoColor=white)](https://github.com/vishwajitvm/Hopline/releases/latest/download/Hopline-Linux-x86_64.AppImage)
+[![Download for Linux (.deb)](https://img.shields.io/badge/Debian%20%2F%20Ubuntu-.deb-A81D33?style=for-the-badge&logo=debian&logoColor=white)](https://github.com/vishwajitvm/Hopline/releases/latest/download/Hopline-Linux-amd64.deb)
+
+<sub>Always the newest release · [All versions & release notes](https://github.com/vishwajitvm/Hopline/releases) · [Checksums](https://github.com/vishwajitvm/Hopline/releases/latest/download/SHA256SUMS.txt) · [Changelog](CHANGELOG.md)</sub>
 
 [**Download**](#-download) · [Features](#-features) · [How it works](#-how-it-works) ·
 [Quick start](#-quick-start) · [Security](#-security) · [Docs](docs/README.md)
@@ -35,18 +46,25 @@ command line. No uploads, no cloud storage, no accounts.
 
 ## 📥 Download
 
-| Platform               | Installer                                                                                           |
-| ---------------------- | --------------------------------------------------------------------------------------------------- |
-| Windows 10/11 (64-bit) | [`Hopline-Setup-<version>-x64.exe`](https://github.com/vishwajitvm/Hopline/releases/latest)         |
-| macOS (Apple Silicon)  | [`Hopline-<version>-mac-arm64.dmg`](https://github.com/vishwajitvm/Hopline/releases/latest)         |
-| macOS (Intel)          | [`Hopline-<version>-mac-x64.dmg`](https://github.com/vishwajitvm/Hopline/releases/latest)           |
-| Linux                  | [`.AppImage` or `.deb`](https://github.com/vishwajitvm/Hopline/releases/latest)                     |
-| Any browser            | Run the web app yourself ([Quick start](#-quick-start)) or use a deployment someone shares with you |
+The buttons and links below always fetch the **latest release**
+([![version](https://img.shields.io/github/v/release/vishwajitvm/Hopline?label=&color=4f46e5)](https://github.com/vishwajitvm/Hopline/releases/latest)).
+Older versions and release notes are on the [Releases page](https://github.com/vishwajitvm/Hopline/releases).
+
+| Platform                         | Download                                                                                                                       | Notes                                                                                               |
+| -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------- |
+| **Windows** 10/11 (64-bit)       | [Hopline-Windows-x64-Setup.exe](https://github.com/vishwajitvm/Hopline/releases/latest/download/Hopline-Windows-x64-Setup.exe) | Installer; adds a private-network firewall rule for Direct mode                                     |
+| **macOS** (Apple Silicon: M1–M4) | [Hopline-macOS-arm64.dmg](https://github.com/vishwajitvm/Hopline/releases/latest/download/Hopline-macOS-arm64.dmg)             | Drag Hopline to Applications                                                                        |
+| **macOS** (Intel)                | [Hopline-macOS-x64.dmg](https://github.com/vishwajitvm/Hopline/releases/latest/download/Hopline-macOS-x64.dmg)                 | Drag Hopline to Applications                                                                        |
+| **Linux** (any distro)           | [Hopline-Linux-x86_64.AppImage](https://github.com/vishwajitvm/Hopline/releases/latest/download/Hopline-Linux-x86_64.AppImage) | `chmod +x` it and run                                                                               |
+| **Linux** (Debian / Ubuntu)      | [Hopline-Linux-amd64.deb](https://github.com/vishwajitvm/Hopline/releases/latest/download/Hopline-Linux-amd64.deb)             | `sudo apt install ./Hopline-Linux-amd64.deb`                                                        |
+| **Any browser**                  | No install                                                                                                                     | Run the web app yourself ([Quick start](#-quick-start)) or use a deployment someone shares with you |
+
+Verify a download against [SHA256SUMS.txt](https://github.com/vishwajitvm/Hopline/releases/latest/download/SHA256SUMS.txt).
 
 > [!NOTE]
 > The installers aren't code-signed yet. On Windows choose **More info → Run anyway** if SmartScreen appears.
 > On macOS right-click the app and choose **Open** the first time (if macOS says it's damaged, run
-> `xattr -cr /Applications/Hopline.app`). Every release includes `SHA256SUMS.txt` to verify downloads.
+> `xattr -cr /Applications/Hopline.app`).
 
 ## 🚀 Features
 

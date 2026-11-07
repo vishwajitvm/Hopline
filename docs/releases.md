@@ -6,11 +6,11 @@ Desktop installers are built by GitHub Actions and attached to a GitHub Release 
 [github.com/vishwajitvm/Hopline/releases](https://github.com/vishwajitvm/Hopline/releases). Users download them
 from there (see [desktop.md](desktop.md#installing)).
 
-| Platform | Files                                                                          |
-| -------- | ------------------------------------------------------------------------------ |
-| Windows  | `Hopline-Setup-<version>-x64.exe` (NSIS, adds the Direct mode firewall rule)   |
-| macOS    | `Hopline-<version>-mac-x64.dmg`, `Hopline-<version>-mac-arm64.dmg`             |
-| Linux    | `Hopline-<version>-linux-x86_64.AppImage`, `Hopline-<version>-linux-amd64.deb` |
+| Platform | Files                                                                      |
+| -------- | -------------------------------------------------------------------------- |
+| Windows  | `Hopline-Windows-x64-Setup.exe` (NSIS, adds the Direct mode firewall rule) |
+| macOS    | `Hopline-macOS-x64.dmg`, `Hopline-macOS-arm64.dmg`                         |
+| Linux    | `Hopline-Linux-x86_64.AppImage`, `Hopline-Linux-amd64.deb`                 |
 
 ## One-time setup: the default signaling server
 

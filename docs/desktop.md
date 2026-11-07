@@ -16,11 +16,11 @@ fix lands in both at once. On top of that it adds two things a browser can't do:
 Download the installer for your system from the
 [GitHub Releases page](https://github.com/vishwajitvm/Hopline/releases):
 
-| System                        | File                                                                             | Notes                                                                                |
-| ----------------------------- | -------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
-| Windows 10/11 (x64)           | `Hopline-Setup-<version>-x64.exe` (NSIS installer)                               | Choose the install folder; adds a desktop shortcut and the Direct mode firewall rule |
-| macOS (Intel / Apple silicon) | `Hopline-<version>-mac-x64.dmg` / `Hopline-<version>-mac-arm64.dmg`              | Drag Hopline to Applications                                                         |
-| Linux (x64)                   | `Hopline-<version>-linux-x86_64.AppImage` or `Hopline-<version>-linux-amd64.deb` | `chmod +x` the AppImage, or `sudo apt install ./Hopline-….deb`                       |
+| System                        | File                                                         | Notes                                                                                |
+| ----------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------------------------------ |
+| Windows 10/11 (x64)           | `Hopline-Windows-x64-Setup.exe` (NSIS installer)             | Choose the install folder; adds a desktop shortcut and the Direct mode firewall rule |
+| macOS (Intel / Apple silicon) | `Hopline-macOS-x64.dmg` / `Hopline-macOS-arm64.dmg`          | Drag Hopline to Applications                                                         |
+| Linux (x64)                   | `Hopline-Linux-x86_64.AppImage` or `Hopline-Linux-amd64.deb` | `chmod +x` the AppImage, or `sudo apt install ./Hopline-Linux-amd64.deb`             |
 
 The installers are **not code-signed** (signing certificates cost money), so the system warns on first launch:
 
