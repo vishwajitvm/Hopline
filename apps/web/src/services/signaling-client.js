@@ -2,6 +2,14 @@ import { ClientMessage, ErrorReason, ServerMessage } from '@hopline/protocol';
 import { Emitter } from '../utils/emitter.js';
 
 const CONNECT_TIMEOUT_MS = 8000;
+/**
+ * The first connection keeps trying this long. Free hosting (e.g. Render's free plan) puts an idle server to
+ * sleep and takes 25-60 s to wake it on the next request; giving up after one short attempt looked like an
+ * outage.
+ */
+const FIRST_CONNECT_DEADLINE_MS = 90_000;
+/** One attempt may wait this long: a waking host holds the connection open until the server is up. */
+const FIRST_ATTEMPT_TIMEOUT_MS = 30_000;
 const HEARTBEAT_MS = 25_000;
 const RECONNECT_DELAYS_MS = [500, 1000, 2000, 4000, 8000];
 const MAX_QUEUED_MESSAGES = 200;
@@ -44,10 +52,26 @@ export class SignalingClient extends Emitter {
     return this.#state === State.ONLINE;
   }
 
-  /** First connection. Rejects if the server can't be reached. */
-  async connect() {
-    await this.#open();
-    this.#state = State.ONLINE;
+  /**
+   * First connection. Retries until FIRST_CONNECT_DEADLINE_MS (a sleeping server takes a while to wake), then
+   * rejects. `onRetry` is called before each new attempt.
+   */
+  async connect({ deadlineMs = FIRST_CONNECT_DEADLINE_MS, onRetry } = {}) {
+    const deadline = Date.now() + deadlineMs;
+    for (let attempt = 1; ; attempt++) {
+      const left = deadline - Date.now();
+      try {
+        await this.#open(Math.max(1000, Math.min(FIRST_ATTEMPT_TIMEOUT_MS, left)));
+        if (this.#state === State.CLOSED) throw new Error(UNREACHABLE); // closed by the app meanwhile
+        this.#state = State.ONLINE;
+        return;
+      } catch (err) {
+        if (this.#state === State.CLOSED || Date.now() + 1000 >= deadline) throw err;
+        onRetry?.(attempt);
+        await new Promise((resolve) => setTimeout(resolve, Math.min(1000 * attempt, 4000)));
+        if (this.#state === State.CLOSED) throw err;
+      }
+    }
   }
 
   /** Remembers the seat to reclaim after a reconnect. */
@@ -81,7 +105,7 @@ export class SignalingClient extends Emitter {
     socket?.close();
   }
 
-  #open() {
+  #open(timeoutMs = CONNECT_TIMEOUT_MS) {
     return new Promise((resolve, reject) => {
       let socket;
       try {
@@ -94,7 +118,7 @@ export class SignalingClient extends Emitter {
       let opened = false;
       const timer = setTimeout(() => {
         if (!opened) socket.close();
-      }, CONNECT_TIMEOUT_MS);
+      }, timeoutMs);
 
       socket.addEventListener('open', () => {
         opened = true;

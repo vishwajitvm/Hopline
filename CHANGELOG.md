@@ -8,6 +8,17 @@ All notable changes to Hopline are recorded here. The format follows
 
 _Nothing yet._
 
+## [1.0.3] - 2026-11-09
+
+### Fixed
+
+- **"Couldn't reach the Hopline server" when the server was asleep.** Free hosting (Render's free plan) pauses an
+  idle server and takes 25–60 s to wake it; the app gave up after 8 s. The first connection now keeps trying for
+  90 s and shows "Waking up the server…" with an explanation.
+- **A server restart ended working transfers.** After a redeploy or a free-plan sleep the server forgets its rooms;
+  a failed rejoin (or a lost server connection) ended the session even though the devices were still connected
+  directly. The session now continues with a notice; only an unconnected session ends.
+
 ## [1.0.2] - 2026-11-07
 
 ### Added
@@ -73,7 +84,8 @@ The first public release (source only: the installer build failed on Linux, so n
 - **Documentation**: `docs/` (architecture, protocols, security, deployment, troubleshooting, the speed
   challenge) and Mermaid diagrams in `diagrams/`.
 
-[Unreleased]: https://github.com/vishwajitvm/Hopline/compare/v1.0.2...HEAD
+[Unreleased]: https://github.com/vishwajitvm/Hopline/compare/v1.0.3...HEAD
+[1.0.3]: https://github.com/vishwajitvm/Hopline/compare/v1.0.2...v1.0.3
 [1.0.2]: https://github.com/vishwajitvm/Hopline/compare/v1.0.1...v1.0.2
 [1.0.1]: https://github.com/vishwajitvm/Hopline/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/vishwajitvm/Hopline/releases/tag/v1.0.0

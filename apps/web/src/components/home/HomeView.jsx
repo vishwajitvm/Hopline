@@ -20,7 +20,7 @@ const FEATURES = [
   },
 ];
 
-export function HomeView({ busy, error, onCreateRoom, onJoinRoom }) {
+export function HomeView({ busy, waking = false, error, onCreateRoom, onJoinRoom }) {
   const [code, setCode] = useState('');
   const [hideIp, setHideIp] = useState(false);
   const canJoin = isValidRoomCode(code) && !busy;
@@ -50,7 +50,7 @@ export function HomeView({ busy, error, onCreateRoom, onJoinRoom }) {
             onClick={() => onCreateRoom({ hideIp })}
             disabled={busy}
           >
-            {busy ? 'Connecting…' : 'Create a room'}
+            {busy ? (waking ? 'Waking up the server…' : 'Connecting…') : 'Create a room'}
           </button>
         </article>
 
@@ -88,6 +88,12 @@ export function HomeView({ busy, error, onCreateRoom, onJoinRoom }) {
         </span>
       </label>
 
+      {busy && waking && (
+        <p className="alert alert-info" role="status">
+          The server was asleep (the free hosting plan pauses it when nobody's using it). Waking it up — this
+          can take up to a minute, and only happens to the first visitor.
+        </p>
+      )}
       {error && (
         <p className="alert alert-error" role="alert">
           {error}

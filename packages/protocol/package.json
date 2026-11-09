@@ -1,6 +1,6 @@
 {
   "name": "@hopline/protocol",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "private": true,
   "description": "Shared message types, constants and validators used by the Hopline server and web client.",
   "type": "module",

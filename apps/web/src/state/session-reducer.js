@@ -31,6 +31,7 @@ export const SessionAction = Object.freeze({
   RECONNECTING: 'reconnecting',
   PEER_PRESENCE: 'peer-presence',
   SERVER_PRESENCE: 'server-presence',
+  SERVER_WAKING: 'server-waking',
   CONNECTION_INFO: 'connection-info',
   SAFETY_CODE: 'safety-code',
   TRANSFERS_CHANGED: 'transfers-changed',
@@ -51,6 +52,8 @@ export const initialSessionState = Object.freeze({
   safetyCode: null,
   peerOnline: false,
   serverOnline: true,
+  /** The first server connection is taking a while (a sleeping free-plan host waking up). */
+  serverWaking: false,
   relayAvailable: false,
 });
 
@@ -94,6 +97,8 @@ export function sessionReducer(state, action) {
         : { ...state, phase: Phase.RECONNECTING, connection: null, safetyCode: null };
     case SessionAction.PEER_PRESENCE:
       return { ...state, peerOnline: action.online };
+    case SessionAction.SERVER_WAKING:
+      return state.phase === Phase.STARTING ? { ...state, serverWaking: true } : state;
     case SessionAction.SERVER_PRESENCE:
       return { ...state, serverOnline: action.online };
     case SessionAction.CONNECTION_INFO:

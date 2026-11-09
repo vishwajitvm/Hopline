@@ -67,6 +67,10 @@ Exposes `{ phase, code, error, notice, transfers, createRoom, joinRoom, sendFile
 - State changes go through `sessionReducer`, so every transition is explicit and listed in one place.
 - `disconnect()` closes connections but keeps received files. `reset()` also releases their memory.
 - A dropped signaling socket rejoins in the background; it never interrupts a working data channel.
+- The first server connection keeps trying for 90 s (a free-plan host can take 25–60 s to wake up) and the start
+  screen says "Waking up the server…" after 3 s. If the server restarted and forgot the room (`rejoin-failed`) or the
+  signaling socket is lost for good while the data channel is open, the session continues with a notice instead of
+  ending; only a session that isn't connected ends.
 - **Reloading the page keeps the room**: the seat (room code + rejoin token, role, "Hide my IP") is kept in
   `sessionStorage` (`utils/seat-storage.js`, this tab only). On load, if it's less than 110 s old (refreshed on
   `pagehide`; the server holds a seat for 120 s), the hook sends `rejoin` instead of showing the start screen, then

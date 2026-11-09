@@ -24,6 +24,9 @@ const Notice = {
     'The connection was lost and could not be restored. Files you already received are below.',
   REJOIN_FAILED: 'The connection was gone too long and the room was closed.',
   SERVER_LOST: 'Lost the connection to the Hopline server.',
+  SERVER_RESTARTED:
+    'The Hopline server restarted. Your devices are still connected directly, so transfers continue. If this ' +
+    'connection drops, start a new room.',
   NO_RELAY:
     '"Hide my IP address" needs a relay server, and this server has none — so nothing was connected and ' +
     'your IP stayed private. Turn the option off to connect directly, or ask the server owner to set up TURN.',
@@ -238,6 +241,10 @@ export function useHoplineSession() {
 
       const signaling = new SignalingClient(resolveSignalingUrl());
       s.signaling = signaling;
+      // A free-plan server may be asleep: if it doesn't answer quickly, say so while we keep trying.
+      const waking = setTimeout(() => {
+        if (session.current === s) dispatch({ type: SessionAction.SERVER_WAKING });
+      }, 3000);
       try {
         // One certificate for every connection of this session (see ConnectionManager: lane authentication).
         const [certificate] = await Promise.all([
@@ -248,6 +255,8 @@ export function useHoplineSession() {
       } catch (err) {
         if (session.current === s && s.signaling === signaling) fail(err.message);
         return;
+      } finally {
+        clearTimeout(waking);
       }
       if (session.current !== s || s.signaling !== signaling) return; // user moved on meanwhile
 
@@ -330,7 +339,13 @@ export function useHoplineSession() {
       signaling.on(ServerMessage.PEER_LEFT, () => end(Notice.PEER_LEFT));
       signaling.on(ServerMessage.ERROR, ({ reason, message: text }) => {
         if (reason === ErrorReason.REJOIN_FAILED) {
-          if (s.everConnected) end(Notice.REJOIN_FAILED);
+          // The server forgot the room (restart, redeploy, a free plan going to sleep). If the devices are
+          // still connected directly they don't need it: keep the transfer going.
+          if (s.channelOpen) {
+            clearSeat();
+            s.seat = null;
+            dispatch({ type: SessionAction.NOTICE, notice: Notice.SERVER_RESTARTED });
+          } else if (s.everConnected) end(Notice.REJOIN_FAILED);
           else fail(text || Notice.REJOIN_FAILED);
         } else if (!s.everConnected) {
           fail(text || 'Something went wrong. Please try again.');
@@ -339,7 +354,17 @@ export function useHoplineSession() {
         }
       });
       signaling.on('disconnected', () => dispatch({ type: SessionAction.SERVER_PRESENCE, online: false }));
-      signaling.on('lost', () => fail(Notice.SERVER_LOST));
+      signaling.on('lost', () => {
+        if (s.channelOpen) {
+          // Only the introduction service is gone; the devices are connected directly.
+          dispatch({ type: SessionAction.SERVER_PRESENCE, online: false });
+          dispatch({ type: SessionAction.NOTICE, notice: Notice.SERVER_RESTARTED });
+        } else if (s.everConnected) {
+          end(Notice.SERVER_LOST); // keeps received files on screen
+        } else {
+          fail(Notice.SERVER_LOST);
+        }
+      });
 
       signaling.send(message.type, message.payload);
     },

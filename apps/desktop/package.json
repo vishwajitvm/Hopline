@@ -1,6 +1,6 @@
 {
   "name": "@hopline/desktop",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "private": true,
   "description": "Hopline desktop app: fast, end-to-end encrypted file transfer (Direct mode between desktop apps, WebRTC with everyone else).",
   "main": "src/main.cjs",
@@ -21,7 +21,7 @@
   },
   "type": "module",
   "dependencies": {
-    "@hopline/cli": "1.0.2"
+    "@hopline/cli": "1.0.3"
   },
   "author": {
     "name": "vishwajitvm",

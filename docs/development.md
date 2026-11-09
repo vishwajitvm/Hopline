@@ -41,7 +41,7 @@ Add a dependency to one workspace: `npm install <pkg> -w @hopline/web`.
 ## Tests
 
 ```bash
-npm test               # 90 tests
+npm test               # 92 tests
 ```
 
 | Suite         | File                                       | Covers                                                                                               |

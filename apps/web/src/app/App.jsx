@@ -28,6 +28,7 @@ export function App() {
         {inLobby ? (
           <HomeView
             busy={session.phase === Phase.STARTING}
+            waking={session.serverWaking}
             error={session.error}
             onCreateRoom={session.createRoom}
             onJoinRoom={session.joinRoom}

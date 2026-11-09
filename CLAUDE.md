@@ -27,7 +27,7 @@ optional TURN relay (coturn). Full docs in `docs/`, diagrams in `diagrams/` (Mer
 npm install
 npm run dev            # server :8787 + Vite :5290 (fixed port; 5173/5180 are taken by other projects' containers)
 npm run check          # lint + format check + tests + build: run before every commit
-npm test               # 90 tests (server, protocol, transfer engine, Direct mode, CLI)
+npm test               # 92 tests (server, protocol, transfer engine, Direct mode, CLI)
 npm run build          # web → apps/web/dist
 npm start              # single process: UI + signaling on :8787
 npm run desktop        # build + Electron
